@@ -7,7 +7,6 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/clojurescript "0.0-2311"]
                  [ring/ring "1.3.0"]
-                 [org.clojure/core.async "0.1.319.0-6b1aca-alpha"]
                  [om "0.7.1"]
                  [ankha "0.1.3"]
                  [compojure "1.1.8"]

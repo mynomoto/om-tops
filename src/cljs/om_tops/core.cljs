@@ -2,7 +2,6 @@
   (:require
     [cljs.reader :as reader]
     [goog.events :as events]
-    [goog.dom :as gdom]
     [om.core :as om :include-macros true]
     [om.dom :as dom :include-macros true]
     [ankha.core :as ankha])
@@ -80,7 +79,7 @@
              (reverse (:words app))))))))
 
 (om/root tops-view app-state
-  {:target (gdom/getElement "tops")})
+  {:target (js/document.getElementById "tops")})
 
 (om/root
  ankha/inspector
