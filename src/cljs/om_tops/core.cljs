@@ -28,8 +28,7 @@
         #js {"Content-Type" "application/edn"}))))
 
 (def app-state
-  (atom {:words []
-         :invalid {}}))
+  (atom {:words []}))
 
 (defn submit-word [word app]
   (edn-xhr
@@ -38,9 +37,13 @@
      :data {:word word}
      :on-complete
      (fn [res]
-       (if (= :ok res)
-         (println "server response:" res)
-         (om/transact! app :invalid #(merge % res))))}))
+       (when-not (= :ok res)
+         (om/transact! app :words
+           #(mapv (fn [x]
+                    (if (= res (:word x))
+                      (assoc x :invalid true)
+                      x))
+              %))))}))
 
 (defn tops-view [app owner]
   (reify
@@ -51,37 +54,44 @@
           (edn-xhr
             {:method :get
              :url "word"
-             :on-complete #(om/transact! app :words (fn [x] (conj (vec (take-last 9 x)) [% :server])))}))
+             :on-complete #(om/transact! app :words
+                             (fn [x]
+                               (conj (vec (take-last 9 x))
+                                 {:word %
+                                  :origin :server})))}))
         1000))
     om/IInitState
     (init-state [_]
-      {:text ""})
+      {:input ""})
     om/IRenderState
     (render-state [this state]
       (dom/div nil
         (dom/h1 nil "Om Tops")
         (dom/input
-          #js {:value (:text state)
-               :onChange #(om/set-state! owner :text (.. % -target -value))})
+          #js {:value (:input state)
+               :onChange #(om/set-state! owner :input (.. % -target -value))})
         (dom/button
-          #js {:onClick #(do
-                           (submit-word (om/get-state owner :text) app)
-                           (om/transact! app :words (fn [x] (conj (vec (take-last 9 x)) [(om/get-state owner :text) :local])))
-                           (om/set-state! owner :text ""))}
+          #js {:onClick #(let [w (om/get-state owner :input)]
+                           (submit-word w app)
+                           (om/transact! app :words
+                             (fn [x]
+                               (conj (vec (take-last 9 x))
+                                 {:word w
+                                  :origin :local})))
+                           (om/set-state! owner :input ""))}
           "Submit")
         (apply dom/div nil
           (map
-            (fn [[w o]]
-              (dom/p #js {:className (str (if (= o :local) "local" "")
-                                       (if (get (:invalid app) w)
-                                         " invalid" ""))}
-                w))
-             (reverse (:words app))))))))
+            (fn [{:keys [word origin invalid]}]
+              (dom/p #js {:className (str (if (= origin :local) "local" "")
+                                       (if invalid " invalid" ""))}
+                word))
+            (reverse (:words app))))))))
 
 (om/root tops-view app-state
   {:target (js/document.getElementById "tops")})
 
-(om/root
+#_(om/root
  ankha/inspector
  app-state
  {:target (js/document.getElementById "debug")})

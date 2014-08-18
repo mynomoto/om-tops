@@ -132,7 +132,7 @@
 (defn submit-word [w]
   (Thread/sleep 3000)
   (if (> (count w) 6)
-    (generate-response {w :invalid} 500)
+    (generate-response w 500)
     (generate-response :ok)))
 
 (defn rand-word []
