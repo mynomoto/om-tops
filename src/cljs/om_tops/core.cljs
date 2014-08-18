@@ -45,6 +45,34 @@
                       x))
               %))))}))
 
+(defn word-view [{:keys [word origin invalid]} owner]
+  (om/component
+    (dom/p #js {:className (str (if (= origin :local) "local" "")
+                             (if invalid " invalid" ""))}
+      word)))
+
+(defn input-word [app owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:input ""})
+    om/IRenderState
+    (render-state [this state]
+      (dom/div nil
+        (dom/input
+          #js {:value (:input state)
+               :onChange #(om/set-state! owner :input (.. % -target -value))})
+        (dom/button
+          #js {:onClick #(let [w (om/get-state owner :input)]
+                           (submit-word w app)
+                           (om/transact! app :words
+                             (fn [x]
+                               (conj (vec (take-last 9 x))
+                                 {:word w
+                                  :origin :local})))
+                           (om/set-state! owner :input ""))}
+          "Submit")))))
+
 (defn tops-view [app owner]
   (reify
     om/IWillMount
@@ -60,33 +88,13 @@
                                  {:word %
                                   :origin :server})))}))
         1000))
-    om/IInitState
-    (init-state [_]
-      {:input ""})
-    om/IRenderState
-    (render-state [this state]
+    om/IRender
+    (render [this]
       (dom/div nil
         (dom/h1 nil "Om Tops")
-        (dom/input
-          #js {:value (:input state)
-               :onChange #(om/set-state! owner :input (.. % -target -value))})
-        (dom/button
-          #js {:onClick #(let [w (om/get-state owner :input)]
-                           (submit-word w app)
-                           (om/transact! app :words
-                             (fn [x]
-                               (conj (vec (take-last 9 x))
-                                 {:word w
-                                  :origin :local})))
-                           (om/set-state! owner :input ""))}
-          "Submit")
+        (om/build input-word app)
         (apply dom/div nil
-          (map
-            (fn [{:keys [word origin invalid]}]
-              (dom/p #js {:className (str (if (= origin :local) "local" "")
-                                       (if invalid " invalid" ""))}
-                word))
-            (reverse (:words app))))))))
+          (om/build-all word-view (reverse (:words app))))))))
 
 (om/root tops-view app-state
   {:target (js/document.getElementById "tops")})
