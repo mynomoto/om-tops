@@ -1,5 +1,6 @@
 (ns om-tops.core
   (:require
+    [clojure.string :as str]
     [cljs.reader :as reader]
     [goog.events :as events]
     [om.core :as om :include-macros true]
@@ -37,18 +38,27 @@
      :data {:word word}
      :on-complete
      (fn [res]
-       (when-not (= :ok res)
-         (om/transact! app :words
-           #(mapv (fn [x]
-                    (if (= res (:word x))
-                      (assoc x :invalid true)
-                      x))
-              %))))}))
+       (om/transact! app :words
+         #(mapv (fn [x]
+                  (cond
+                    (= (:invalid res) (:word x))
+                    (assoc x :invalid true)
 
-(defn word-view [{:keys [word origin invalid]} owner]
+                    (= (:valid res) (:word x))
+                    (assoc x :valid true)
+
+                    :else x))
+            %)))}))
+
+(defn word-view [{:keys [word origin invalid valid]} owner]
   (om/component
-    (dom/p #js {:className (str (if (= origin :local) "local" "")
-                             (if invalid " invalid" ""))}
+    (dom/li
+      #js {:className (str "list-group-item"
+                        (when (and (= origin :local) (not invalid) (not valid))
+                          " list-group-item-warning")
+                        (when (and (= origin :local) valid)
+                          " list-group-item-success")
+                        (when invalid " invalid list-group-item-danger"))}
       word)))
 
 (defn input-word [app owner]
@@ -58,20 +68,24 @@
       {:input ""})
     om/IRenderState
     (render-state [this state]
-      (dom/div nil
+      (dom/div #js {:className "input-group"}
         (dom/input
-          #js {:value (:input state)
+          #js {:className "form-control"
+               :value (:input state)
                :onChange #(om/set-state! owner :input (.. % -target -value))})
-        (dom/button
-          #js {:onClick #(let [w (om/get-state owner :input)]
-                           (submit-word w app)
-                           (om/transact! app :words
-                             (fn [x]
-                               (conj (vec (take-last 9 x))
-                                 {:word w
-                                  :origin :local})))
-                           (om/set-state! owner :input ""))}
-          "Submit")))))
+        (dom/span #js {:className "input-group-btn"}
+          (dom/button
+            #js {:className "btn btn-primary"
+                 :onClick #(let [w (om/get-state owner :input)]
+                             (when-not (str/blank? w)
+                               (submit-word w app)
+                               (om/transact! app :words
+                                 (fn [x]
+                                   (conj (vec (take-last 9 x))
+                                     {:word w
+                                      :origin :local})))
+                               (om/set-state! owner :input "")))}
+            "Submit"))))))
 
 (defn tops-view [app owner]
   (reify
@@ -90,16 +104,17 @@
         1000))
     om/IRender
     (render [this]
-      (dom/div nil
-        (dom/h1 nil "Om Tops")
-        (om/build input-word app)
-        (apply dom/div nil
-          (om/build-all word-view (reverse (:words app))))))))
+      (dom/div #js {:className "row"}
+        (dom/div #js {:className "col-lg-4 col-md-5 col-sm-6"}
+          (dom/h1 nil "Om Tops")
+          (om/build input-word app)
+          (apply dom/ul #js {:className "list-group"}
+            (om/build-all word-view (reverse (:words app)))))))))
 
 (om/root tops-view app-state
   {:target (js/document.getElementById "tops")})
 
-#_(om/root
+(om/root
  ankha/inspector
  app-state
  {:target (js/document.getElementById "debug")})
