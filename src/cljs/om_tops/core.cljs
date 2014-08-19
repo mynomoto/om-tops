@@ -96,11 +96,12 @@
           (edn-xhr
             {:method :get
              :url "word"
-             :on-complete #(om/transact! app :words
-                             (fn [x]
-                               (conj (vec (take-last 9 x))
-                                 {:word %
-                                  :origin :server})))}))
+             :on-complete #(when-not (str/blank? %)
+                             (om/transact! app :words
+                               (fn [x]
+                                 (conj (vec (take-last 9 x))
+                                   {:word %
+                                    :origin :server}))))}))
         1000))
     om/IRender
     (render [this]
