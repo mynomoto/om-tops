@@ -112,10 +112,11 @@
           (apply dom/ul #js {:className "list-group"}
             (om/build-all word-view (reverse (:words app)))))))))
 
-(om/root tops-view app-state
-  {:target (js/document.getElementById "tops")})
+(when (js/document.getElementById "tops")
+  (om/root tops-view app-state
+    {:target (js/document.getElementById "tops")}))
 
-(om/root
+#_(om/root
  ankha/inspector
  app-state
  {:target (js/document.getElementById "debug")})
