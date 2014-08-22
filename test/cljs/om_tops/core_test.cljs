@@ -32,11 +32,11 @@
     (insert-container! n)
     (sel1 s)))
 
-(defspec server-word-view runs
+(defspec server-word-item runs
   (prop/for-all [w (gen/hash-map :word gen/string-ascii)]
     (when isClient
       (let [div (new-container!)
-            _ (om/root o/word-view (assoc w :origin :server) {:target div})
+            _ (om/root o/word-item (assoc w :origin :server) {:target div})
             el (.-firstChild div)]
         (is (= 1 (.-childElementCount div)))
         (is (= (:word w) (dommy/text el)))
@@ -47,11 +47,11 @@
         (is (not (dommy/has-class? el "invalid"))))
       true)))
 
-(defspec local-word-view runs
+(defspec local-word-item runs
   (prop/for-all [w (gen/hash-map :word gen/string-ascii)]
     (when isClient
       (let [div (new-container!)
-            _ (om/root o/word-view (assoc w :origin :local) {:target div})
+            _ (om/root o/word-item (assoc w :origin :local) {:target div})
             el (.-firstChild div)]
         (is (= 1 (.-childElementCount div)))
         (is (= (:word w) (dommy/text el)))
@@ -62,11 +62,11 @@
         (is (not (dommy/has-class? el "invalid"))))
       true)))
 
-(defspec local-word-view-valid runs
+(defspec local-word-item-valid runs
   (prop/for-all [w (gen/hash-map :word gen/string-ascii)]
     (when isClient
       (let [div (new-container!)
-            _ (om/root o/word-view (assoc w
+            _ (om/root o/word-item (assoc w
                                      :origin :local
                                      :valid true) {:target div})
             el (.-firstChild div)]
@@ -79,11 +79,11 @@
         (is (not (dommy/has-class? el "invalid"))))
       true)))
 
-(defspec local-word-view-invalid runs
+(defspec local-word-item-invalid runs
   (prop/for-all [w (gen/hash-map :word gen/string-ascii)]
     (when isClient
       (let [div (new-container!)
-            _ (om/root o/word-view (assoc w
+            _ (om/root o/word-item (assoc w
                                      :origin :local
                                      :invalid true) {:target div})
             el (.-firstChild div)]
@@ -101,7 +101,7 @@
     (let [ws {:words [{:word "blabla" :origin :server}
                       {:word "bleble" :origin :server}]}]
       (let [div (new-container!)
-            _ (om/root o/tops-view ws {:target div})
+            _ (om/root o/tops-component ws {:target div})
             elp (.-firstChild div)
             elc (.-firstChild elp)
             h (aget (.-childNodes elc) 0)

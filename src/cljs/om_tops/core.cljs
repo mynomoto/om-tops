@@ -28,8 +28,7 @@
       (send url (meths method) (when data (pr-str data))
         #js {"Content-Type" "application/edn"}))))
 
-(def app-state
-  (atom {:words []}))
+(def state (atom {:words []}))
 
 (defn submit-word [word app]
   (edn-xhr
@@ -50,7 +49,7 @@
                     :else x))
             %)))}))
 
-(defn word-view [{:keys [word origin invalid valid]} owner]
+(defn word-item [{:keys [word origin invalid valid]} owner]
   (om/component
     (dom/li
       #js {:className (str "list-group-item"
@@ -61,7 +60,12 @@
                         (when invalid " invalid list-group-item-danger"))}
       word)))
 
-(defn input-word [app owner]
+(defn word-list [words owner]
+  (om/component
+    (apply dom/ul #js {:className "list-group"}
+      (om/build-all word-item words))))
+
+(defn word-input [app owner]
   (reify
     om/IInitState
     (init-state [_]
@@ -87,36 +91,36 @@
                                (om/set-state! owner :input "")))}
             "Submit"))))))
 
-(defn tops-view [app owner]
+(defn tops-component [app owner]
   (reify
     om/IWillMount
     (will-mount [_]
-      (js/setInterval
-        (fn []
-          (edn-xhr
-            {:method :get
-             :url "word"
-             :on-complete #(when-not (str/blank? %)
-                             (om/transact! app :words
-                               (fn [x]
-                                 (conj (vec (take-last 9 x))
-                                   {:word %
-                                    :origin :server}))))}))
-        1000))
+      (let [update-state
+            (fn []
+              (edn-xhr
+                {:method :get
+                 :url "word"
+                 :on-complete #(when-not (str/blank? %)
+                                 (om/transact! app :words
+                                   (fn [x]
+                                     (conj (vec (take-last 9 x))
+                                       {:word %
+                                        :origin :server}))))}))]
+        (update-state)
+        (js/setInterval update-state 1000)))
     om/IRender
     (render [this]
       (dom/div #js {:className "row"}
         (dom/div #js {:className "col-lg-4 col-md-5 col-sm-6"}
           (dom/h1 nil "Om Tops")
-          (om/build input-word app)
-          (apply dom/ul #js {:className "list-group"}
-            (om/build-all word-view (reverse (:words app)))))))))
+          (om/build word-input app)
+          (om/build word-list (reverse (:words app))))))))
 
 (when (js/document.getElementById "tops")
-  (om/root tops-view app-state
+  (om/root tops-component state
     {:target (js/document.getElementById "tops")}))
 
 #_(om/root
  ankha/inspector
- app-state
+ state
  {:target (js/document.getElementById "debug")})
