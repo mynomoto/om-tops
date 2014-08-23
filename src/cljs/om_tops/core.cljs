@@ -63,7 +63,7 @@
 (defn word-list [words owner]
   (om/component
     (apply dom/ul #js {:className "list-group"}
-      (om/build-all word-item words))))
+      (om/build-all word-item (reverse words)))))
 
 (defn word-input [app owner]
   (reify
@@ -114,7 +114,7 @@
         (dom/div #js {:className "col-lg-4 col-md-5 col-sm-6"}
           (dom/h1 nil "Om Tops")
           (om/build word-input app)
-          (om/build word-list (reverse (:words app))))))))
+          (om/build word-list (:words app)))))))
 
 (when (js/document.getElementById "tops")
   (om/root tops-component state
