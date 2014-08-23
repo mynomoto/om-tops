@@ -6,8 +6,12 @@
             [compojure.route :as route]
             [compojure.handler :as handler]))
 
+(def prod false)
+
 (defn index []
-  (file-response "public/html/index.html" {:root "resources"}))
+  (if prod
+    (file-response "public/html/index-prod.html" {:root "resources"})
+    (file-response "public/html/index.html" {:root "resources"})))
 
 (defn generate-response [data & [status]]
   {:status (or status 200)

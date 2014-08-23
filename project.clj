@@ -18,6 +18,7 @@
                                   [com.cemerick/clojurescript.test "0.3.1"]
                                   [com.cemerick/double-check "0.5.7"]
                                   [om "0.7.1"]
+                                  [com.facebook/react "0.11.1"]
                                   [ankha "0.1.3"]
                                   [prismatic/dommy "0.1.3"]]}}
   :cljsbuild
@@ -28,6 +29,13 @@
                 :output-dir "resources/public/js/out"
                 :optimizations :none
                 :source-map true}}
+    {:id "prod"
+     :source-paths ["src/cljs"]
+     :compiler {:output-to "resources/public/js/main-prod.js"
+                :optimizations :advanced
+                :pretty-print false
+                :preamble ["react/react.min.js"]
+                :externs ["react/externs/react.js"]}}
     {:id "test"
      :source-paths ["src/cljs" "test/cljs"]
      :notify-command ["phantomjs" :cljs.test/runner
