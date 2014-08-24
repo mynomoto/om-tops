@@ -28,26 +28,27 @@
     (let [div (new-container!)
           _ (om/root t/word-item (assoc w :origin :server) {:target div})
           el (.-firstChild div)]
-      (is (= 1 (.-childElementCount div)))
-      (is (= (:word w) (dommy/text el)))
-      (is (dommy/has-class? el "list-group-item"))
-      (is (not (dommy/has-class? el "list-group-item-warning")))
-      (is (not (dommy/has-class? el "list-group-item-success")))
-      (is (not (dommy/has-class? el "list-group-item-danger")))
-      (is (not (dommy/has-class? el "invalid"))))))
+      (and (= 1 (.-childElementCount div))
+        (= (:word w) (dommy/text el))
+        (dommy/has-class? el "list-group-item")
+        (not (dommy/has-class? el "list-group-item-warning"))
+        (not (dommy/has-class? el "list-group-item-success"))
+        (not (dommy/has-class? el "list-group-item-danger"))
+        (not (dommy/has-class? el "invalid"))))))
 
 (defspec local-word-item runs
   (prop/for-all [w (gen/hash-map :word gen/string-ascii)]
     (let [div (new-container!)
           _ (om/root t/word-item (assoc w :origin :local) {:target div})
           el (.-firstChild div)]
-      (is (= 1 (.-childElementCount div)))
-      (is (= (:word w) (dommy/text el)))
-      (is (dommy/has-class? el "list-group-item"))
-      (is (dommy/has-class? el "list-group-item-warning"))
-      (is (not (dommy/has-class? el "list-group-item-success")))
-      (is (not (dommy/has-class? el "list-group-item-danger")))
-      (is (not (dommy/has-class? el "invalid"))))))
+      (and
+        (= 1 (.-childElementCount div))
+        (= (:word w) (dommy/text el))
+        (dommy/has-class? el "list-group-item")
+        (dommy/has-class? el "list-group-item-warning")
+        (not (dommy/has-class? el "list-group-item-success"))
+        (not (dommy/has-class? el "list-group-item-danger"))
+        (not (dommy/has-class? el "invalid"))))))
 
 (defspec local-word-item-valid runs
   (prop/for-all [w (gen/hash-map :word gen/string-ascii)]
@@ -56,13 +57,14 @@
                                    :origin :local
                                    :valid true) {:target div})
           el (.-firstChild div)]
-      (is (= 1 (.-childElementCount div)))
-      (is (= (:word w) (dommy/text el)))
-      (is (dommy/has-class? el "list-group-item"))
-      (is (not (dommy/has-class? el "list-group-item-warning")))
-      (is (dommy/has-class? el "list-group-item-success"))
-      (is (not (dommy/has-class? el "list-group-item-danger")))
-      (is (not (dommy/has-class? el "invalid"))))))
+      (and
+        (= 1 (.-childElementCount div))
+        (= (:word w) (dommy/text el))
+        (dommy/has-class? el "list-group-item")
+        (not (dommy/has-class? el "list-group-item-warning"))
+        (dommy/has-class? el "list-group-item-success")
+        (not (dommy/has-class? el "list-group-item-danger"))
+        (not (dommy/has-class? el "invalid"))))))
 
 (defspec local-word-item-invalid runs
   (prop/for-all [w (gen/hash-map :word gen/string-ascii)]
@@ -71,13 +73,14 @@
                                    :origin :local
                                    :invalid true) {:target div})
           el (.-firstChild div)]
-      (is (= 1 (.-childElementCount div)))
-      (is (= (:word w) (dommy/text el)))
-      (is (dommy/has-class? el "list-group-item"))
-      (is (not (dommy/has-class? el "list-group-item-warning")))
-      (is (not (dommy/has-class? el "list-group-item-success")))
-      (is (dommy/has-class? el "list-group-item-danger"))
-      (is (dommy/has-class? el "invalid")))))
+      (and
+        (= 1 (.-childElementCount div))
+        (= (:word w) (dommy/text el))
+        (dommy/has-class? el "list-group-item")
+        (not (dommy/has-class? el "list-group-item-warning"))
+        (not (dommy/has-class? el "list-group-item-success"))
+        (dommy/has-class? el "list-group-item-danger")
+        (dommy/has-class? el "invalid")))))
 
 (defspec word-list-test runs
   (prop/for-all [w (gen/vector (gen/hash-map :word gen/string-ascii) 0 10)]
@@ -85,10 +88,11 @@
           _ (om/root t/word-list (map #(assoc % :origin :server) w)
               {:target div})
           el (.-firstChild div)]
-          (is (= 1 (.-childElementCount div)))
-          (is (= (count w) (.-childElementCount el)))
-          (is (dommy/has-class? el "list-group"))
-          (is (= (str/join (map :word (reverse w))) (dommy/text el))))))
+      (and
+        (= 1 (.-childElementCount div))
+        (= (count w) (.-childElementCount el))
+        (dommy/has-class? el "list-group")
+        (= (str/join (map :word (reverse w))) (dommy/text el))))))
 
 (deftest word-input-test
   (let [ws {:words [{:word "blabla" :origin :server}
@@ -118,14 +122,15 @@
           elc (.-firstChild elp)
           h (aget (.-childNodes elc) 0)
           wl (aget (.-childNodes elc) 2)]
-      (is (= 1 (.-childElementCount div)))
-      (is (= 1 (.-childElementCount elp)))
-      (is (= 3 (.-childElementCount elc)))
-      (is (dommy/has-class? elp "row"))
-      (is (dommy/has-class? elc "col-lg-4"))
-      (is (dommy/has-class? elc "col-md-5"))
-      (is (dommy/has-class? elc "col-sm-6"))
-      (is (= "Om Tops" (dommy/text h)))
-      (is (= (count w) (.-childElementCount wl)))
-      (is (dommy/has-class? wl "list-group"))
-      (is (= (str/join (map :word (reverse (:words ws)))) (dommy/text wl))))))
+      (and
+        (= 1 (.-childElementCount div))
+        (= 1 (.-childElementCount elp))
+        (= 3 (.-childElementCount elc))
+        (dommy/has-class? elp "row")
+        (dommy/has-class? elc "col-lg-4")
+        (dommy/has-class? elc "col-md-5")
+        (dommy/has-class? elc "col-sm-6")
+        (= "Om Tops" (dommy/text h))
+        (= (count w) (.-childElementCount wl))
+        (dommy/has-class? wl "list-group")
+        (= (str/join (map :word (reverse (:words ws)))) (dommy/text wl))))))
