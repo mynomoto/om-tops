@@ -45,7 +45,7 @@
                       "window.literal_js_was_evaluated=true"
                       "target/cljs/testable.js"]
      :compiler {:output-to "target/cljs/testable.js"
-                :preamble ["public/js/react-0.11.1.js"]
+                :preamble ["react/react.js"]
                 :optimizations :whitespace
                 :pretty-print true}}]
 

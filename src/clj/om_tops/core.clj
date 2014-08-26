@@ -134,7 +134,7 @@
    "byssal" "byssus" "bytalk" "byways" "byword" "bywork" "byzant"])
 
 (defn submit-word [w]
-  (Thread/sleep 3000)
+  (Thread/sleep 2000)
   (if (> (count w) 6)
     (generate-response {:invalid w} 500)
     (generate-response {:valid w})))
